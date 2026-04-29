@@ -175,16 +175,19 @@ export default function App() {
       type: 'button',
       primary: false
     },
-    /*
+    
     {
-      title: 'Reservar Mesa',
-      subtitle: 'Atendimento exclusivo via WhatsApp',
+      title: 'Grupo do WhatsApp',
+      subtitle: 'Entre no nosso grupo VIP',
       icon: <MessageCircle className="w-5 h-5" />,
-      href: 'https://wa.me/5527999999999?text=Ol%C3%A1%21%20Gostaria%20de%20reservar%20uma%20mesa.',
+      href: 'https://chat.whatsapp.com/Ggtd6keUe0vEhN9Iq2wwuH?mode=gi_t',
       type: 'external',
       primary: true
     },
-    */
+    
+    {
+      title: 'Instagram',
+      subtitle: 'Siga para ver as novidades',
     {
       title: 'Instagram',
       subtitle: 'Siga para ver as novidades',

@@ -175,7 +175,6 @@ export default function App() {
       type: 'button',
       primary: false
     },
-    
     {
       title: 'Grupo do WhatsApp',
       subtitle: 'Entre no nosso grupo VIP',
@@ -184,10 +183,6 @@ export default function App() {
       type: 'external',
       primary: true
     },
-    
-    {
-      title: 'Instagram',
-      subtitle: 'Siga para ver as novidades',
     {
       title: 'Instagram',
       subtitle: 'Siga para ver as novidades',

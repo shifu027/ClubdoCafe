@@ -242,9 +242,6 @@ export default function App() {
                   src={logoPath} 
                   alt="Logo Club do Café" 
                   className="w-full h-full object-cover scale-110"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300';
-                  }}
                 />
               </div>
             </div>
@@ -371,11 +368,6 @@ export default function App() {
                           src={encodeURI(menuPages[menuPageIndex].src)} 
                           alt={menuPages[menuPageIndex].alt} 
                           className="max-w-[90vw] max-h-[75vh] sm:max-h-[85%] rounded-[24px] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.7)] border border-white/10 object-contain select-none"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = menuPageIndex === 0 
-                              ? 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800'
-                              : 'https://images.unsplash.com/photo-1559925393-8be0ec41b50d?q=80&w=800';
-                          }}
                         />
                       </div>
                     </motion.div>

@@ -142,13 +142,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Importar imagens usando import estático (Vite as processa corretamente)
-  import.meta.glob('/public/**/*');
-  const logoPath = new URL('/ClubdoCafe/image.png', import.meta.url).href.replace(import.meta.url.split('/').slice(0, -1).join('/') + '/', '');
-  
+  // Assets servidos de public/assets, respeitando o base do Vite (/ClubdoCafe/ em producao)
+  const assetBase = import.meta.env.BASE_URL;
+  const logoPath = `${assetBase}assets/logo.png`;
+
   const menuPages = [
-    { src: new URL('/ClubdoCafe/menu%20club%20do%20cafe%20capa.jpg', import.meta.url).href.replace(import.meta.url.split('/').slice(0, -1).join('/') + '/', ''), alt: "Capa do Menu" },
-    { src: new URL('/ClubdoCafe/menu%20club%20do%20cafe.jpg', import.meta.url).href.replace(import.meta.url.split('/').slice(0, -1).join('/') + '/', ''), alt: "Itens do Menu" }
+    { src: `${assetBase}assets/menu-capa.jpg`, alt: "Capa do Menu" },
+    { src: `${assetBase}assets/menu.jpg`, alt: "Itens do Menu" }
   ];
 
   const nextMenuPage = () => {
@@ -227,6 +227,9 @@ export default function App() {
       <div className="iphone-shell z-10 shrink-0">
         <div className="dynamic-island" />
         <div className="top-decor" />
+        <div className="ambient-glow ambient-glow-1" />
+        <div className="ambient-glow ambient-glow-2" />
+        <div className="ambient-grain" />
 
         <main className="relative z-10 flex flex-col items-center px-6 pt-6 sm:pt-12 pb-4 sm:pb-6 h-full overflow-hidden">
           {/* Header / Profile */}
@@ -236,15 +239,26 @@ export default function App() {
             className="flex flex-col items-center text-center mb-3 sm:mb-6 w-full"
           >
             <div className="relative mb-2 sm:mb-4">
-              <div className="w-[75px] h-[75px] sm:w-[100px] sm:h-[100px] rounded-full bg-white shadow-lg overflow-hidden flex items-center justify-center border-4 border-white transition-all">
-                <img 
-                  src={logoPath} 
-                  alt="Logo Club do Café" 
-                  className="w-full h-full object-cover scale-110"
-                />
+              <div className="steam" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="logo-ring shadow-lg">
+                <div className="w-[75px] h-[75px] sm:w-[100px] sm:h-[100px] rounded-full bg-white overflow-hidden flex items-center justify-center border-4 border-white transition-all">
+                  <img
+                    src={logoPath}
+                    alt="Logo Club do Café"
+                    className="w-full h-full object-cover scale-110"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300';
+                    }}
+                  />
+                </div>
               </div>
             </div>
-            
+
+          <span className="eyebrow">Cafeteria Artesanal</span>
           <h1 className="font-serif text-[26px] sm:text-[34px] font-bold text-cafe-dark leading-tight mb-1 tracking-tight">
             Club do Café
           </h1>
@@ -275,7 +289,7 @@ export default function App() {
                       {link.icon}
                     </div>
                   </div>
-                  <div className="flex flex-col justify-center flex-grow min-w-0 pr-4 text-left">
+                  <div className="flex flex-col justify-center flex-grow min-w-0 pr-2 text-left">
                     <h3 className={`text-[17px] font-bold leading-none truncate ${link.primary ? 'text-white' : 'text-cafe-dark'}`}>
                       {link.title}
                     </h3>
@@ -283,6 +297,7 @@ export default function App() {
                       {link.subtitle}
                     </p>
                   </div>
+                  <ChevronRight className={`card-arrow w-5 h-5 mr-1 ${link.primary ? 'text-cafe-gold' : 'text-cafe-accent'}`} />
                 </GlowCard>
               </motion.div>
             ))}

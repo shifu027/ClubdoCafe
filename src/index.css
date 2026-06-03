@@ -10,6 +10,7 @@
   --color-cafe-muted: #7a5431; /* Darkened slightly for better contrast */
   --color-cafe-beige: #e8dcc8;
   --color-cafe-creme: #f4ebe1;
+  --color-cafe-gold: #c89b6a;
 }
 
 @layer base {
@@ -164,4 +165,134 @@
 
 .bean-animated {
   animation: bean-float-1 4s ease-in-out infinite;
+}
+
+/* ===================================================================
+   Aprimoramentos visuais (atmosfera, logo, eyebrow, setas)
+   =================================================================== */
+
+/* Atmosfera ambiente dentro da casca */
+.ambient-glow {
+  @apply absolute rounded-full pointer-events-none z-0;
+  filter: blur(64px);
+}
+
+.ambient-glow-1 {
+  width: 280px;
+  height: 280px;
+  top: -70px;
+  right: -90px;
+  background: radial-gradient(circle, rgba(200, 155, 106, 0.45), transparent 70%);
+  animation: drift-1 16s ease-in-out infinite;
+}
+
+.ambient-glow-2 {
+  width: 260px;
+  height: 260px;
+  bottom: 30px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(166, 124, 82, 0.35), transparent 70%);
+  animation: drift-2 20s ease-in-out infinite;
+}
+
+.ambient-grain {
+  @apply absolute inset-0 pointer-events-none z-[1];
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* Logo: anel dourado giratorio + vapor */
+.logo-ring {
+  @apply relative rounded-full p-[5px];
+}
+
+.logo-ring::before {
+  content: "";
+  @apply absolute inset-0 rounded-full;
+  padding: 3px;
+  background: conic-gradient(from 0deg, transparent 0%, var(--color-cafe-gold) 25%, var(--color-cafe-accent) 45%, transparent 65%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin 7s linear infinite;
+}
+
+.steam {
+  @apply absolute left-1/2 -translate-x-1/2 flex gap-3 z-0;
+  top: -14px;
+}
+
+.steam span {
+  @apply block w-[5px] h-[5px] rounded-full;
+  background: rgba(166, 124, 82, 0.55);
+  filter: blur(3px);
+  animation: steam-rise 3.4s ease-in-out infinite;
+}
+
+.steam span:nth-child(2) {
+  animation-delay: 0.7s;
+}
+
+.steam span:nth-child(3) {
+  animation-delay: 1.4s;
+}
+
+/* Eyebrow */
+.eyebrow {
+  @apply flex items-center gap-2.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.3em] text-cafe-accent mb-2;
+}
+
+.eyebrow::before,
+.eyebrow::after {
+  content: "";
+  @apply block h-px w-5 sm:w-6;
+}
+
+.eyebrow::before {
+  background: linear-gradient(90deg, transparent, var(--color-cafe-accent));
+}
+
+.eyebrow::after {
+  background: linear-gradient(90deg, var(--color-cafe-accent), transparent);
+}
+
+/* Seta deslizante nos cards */
+.card-arrow {
+  @apply flex-shrink-0 opacity-0 -translate-x-2 transition-all duration-300 ease-out;
+}
+
+.glow-card:hover .card-arrow {
+  @apply opacity-100 translate-x-0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes steam-rise {
+  0% { transform: translateY(0) scale(0.8); opacity: 0; }
+  25% { opacity: 0.7; }
+  100% { transform: translateY(-24px) scale(1.5); opacity: 0; }
+}
+
+@keyframes drift-1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-24px, 22px); }
+}
+
+@keyframes drift-2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(26px, -18px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-glow-1,
+  .ambient-glow-2,
+  .logo-ring::before,
+  .steam span,
+  .bean-animated {
+    animation: none !important;
+  }
 }

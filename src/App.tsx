@@ -142,12 +142,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Nomes dos arquivos fornecidos pelo usuário
-  const basePath = import.meta.env.BASE_URL;
-  const logoPath = `${basePath}image.png`;
+  // Importar imagens usando import estático (Vite as processa corretamente)
+  import.meta.glob('/public/**/*');
+  const logoPath = new URL('/ClubdoCafe/image.png', import.meta.url).href.replace(import.meta.url.split('/').slice(0, -1).join('/') + '/', '');
+  
   const menuPages = [
-    { src: `${basePath}menu club do cafe capa.jpg`, alt: "Capa do Menu" },
-    { src: `${basePath}menu club do cafe.jpg`, alt: "Itens do Menu" }
+    { src: new URL('/ClubdoCafe/menu%20club%20do%20cafe%20capa.jpg', import.meta.url).href.replace(import.meta.url.split('/').slice(0, -1).join('/') + '/', ''), alt: "Capa do Menu" },
+    { src: new URL('/ClubdoCafe/menu%20club%20do%20cafe.jpg', import.meta.url).href.replace(import.meta.url.split('/').slice(0, -1).join('/') + '/', ''), alt: "Itens do Menu" }
   ];
 
   const nextMenuPage = () => {
@@ -359,11 +360,11 @@ export default function App() {
                         />
                         
                         {/* Edge curl visual cue */}
-                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/20 to-transparent rounded-r-[24px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/20 to-transparent rounded-l-[24px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/20 to-transparent rounded-r-[24px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/20 to-transparent rounded-l-[24px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                         <img 
-                          src={encodeURI(menuPages[menuPageIndex].src)} 
+                          src={menuPages[menuPageIndex].src} 
                           alt={menuPages[menuPageIndex].alt} 
                           className="max-w-[90vw] max-h-[75vh] sm:max-h-[85%] rounded-[24px] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.7)] border border-white/10 object-contain select-none"
                         />
@@ -401,14 +402,14 @@ export default function App() {
                   {/* Navigation Arrows */}
                   <button 
                     onClick={prevMenuPage}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white/10 hover:bg-cafe-accent text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white/10 hover:bg-cafe-accent text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-300 active:scale-90"
                     aria-label="Página anterior"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
                   <button 
                     onClick={nextMenuPage}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-white/10 hover:bg-cafe-accent text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-white/10 hover:bg-cafe-accent text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-300 active:scale-90"
                     aria-label="Próxima página"
                   >
                     <ChevronRight className="w-6 h-6" />
@@ -440,7 +441,7 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.8, y: 10 }}
               onClick={scrollToTop}
               aria-label="Voltar ao topo"
-              className="fixed sm:absolute bottom-8 right-8 bg-cafe-dark text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center z-50 hover:bg-cafe-accent transition-all duration-300 active:scale-95"
+              className="fixed sm:absolute bottom-8 right-8 bg-cafe-dark text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center z-50 hover:bg-cafe-accent transition-all duration-300 active:scale-90"
             >
               <ArrowUp className="w-5 h-5" />
             </motion.button>

@@ -127,12 +127,31 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
 }) {
   return (
     <div style={{
+      position: 'relative',
       width: '100%',
       background: '#f5ece0',
       borderRadius: 16,
       overflow: 'hidden',
       boxShadow: '0 12px 48px rgba(42,27,18,0.2)',
     }}>
+      {/* SVG decorative overlay — watermark of the original design frame */}
+      <img
+        src={`${BASE}assets/menu-items.svg`}
+        aria-hidden
+        draggable={false}
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'fill',
+          opacity: 0.055,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* All content sits above the SVG watermark */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+
       {/* Menu header */}
       <div style={{
         padding: '14px 16px 10px',
@@ -227,6 +246,8 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
           fontFamily: '"Outfit", sans-serif', letterSpacing: '0.08em',
         }}>@CLUB.DO.CAFE</p>
       </div>
+
+      </div>{/* end content wrapper */}
     </div>
   );
 }

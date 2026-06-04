@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './index.css';
+import './cardapio.css';
 import Cardapio from './Cardapio';
 
 createRoot(document.getElementById('root')!).render(

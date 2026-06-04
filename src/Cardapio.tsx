@@ -94,7 +94,8 @@ export default function Cardapio() {
     ]);
 
     if (catsErr || itemsErr) {
-      setFetchError(true);
+      // Only replace the screen with an error when there's no cached menu yet
+      if (categories.length === 0) setFetchError(true);
       setLoading(false);
       return;
     }

@@ -25,6 +25,7 @@ export default defineConfig(({mode}) => {
         input: {
           main: resolve(__dirname, 'index.html'),
           cardapio: resolve(__dirname, 'cardapio.html'),
+          admin: resolve(__dirname, 'admin.html'),
         },
       },
     },

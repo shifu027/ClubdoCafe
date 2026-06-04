@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, type PanInfo } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, type CategoryWithItems, type MenuItem } from './lib/supabase';
@@ -260,6 +260,7 @@ export default function Cardapio() {
   const [categories, setCategories] = useState<CategoryWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
+  const hasLoadedRef = useRef(false);
 
   const fetchData = async () => {
     const [{ data: cats, error: catsErr }, { data: items, error: itemsErr }] = await Promise.all([
@@ -267,10 +268,11 @@ export default function Cardapio() {
       supabase.from('menu_items').select('*').order('display_order'),
     ]);
     if (catsErr || itemsErr) {
-      if (categories.length === 0) setFetchError(true);
+      if (!hasLoadedRef.current) setFetchError(true);
       setLoading(false);
       return;
     }
+    hasLoadedRef.current = true;
     setFetchError(false);
     if (cats && items) {
       setCategories(cats.map(c => ({
@@ -313,7 +315,7 @@ export default function Cardapio() {
       minHeight: '100dvh',
       background: 'linear-gradient(160deg, #fdfbf7 0%, #f4ebe1 55%, #e8dcc8 100%)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      overflow: 'hidden', position: 'relative',
+      overflowX: 'hidden', position: 'relative',
       fontFamily: '"Outfit", sans-serif',
     }}>
       {/* Ambient glows */}
@@ -382,7 +384,7 @@ export default function Cardapio() {
         flex: 1, width: '100%', maxWidth: 500,
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '4px 14px', position: 'relative', zIndex: 10,
-        overflow: 'hidden', perspective: '1400px',
+        overflowX: 'hidden', perspective: '1400px',
       }}>
         <AnimatePresence custom={direction} mode="wait">
           <motion.div

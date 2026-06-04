@@ -159,7 +159,30 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
       />
 
       {/* Content */}
-      <div style={{ padding: '4px 18px 6px' }}>
+      <div style={{ position: 'relative', padding: '4px 18px 6px' }}>
+
+        {/* Side doodles — fade mask hides center bleed, multiply hides cream background */}
+        <img src={`${BASE}assets/menu-doodle-left.png`} aria-hidden draggable={false}
+          style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0,
+            width: '22%', height: '100%',
+            objectFit: 'cover', objectPosition: 'left center',
+            mixBlendMode: 'multiply', opacity: 0.85, pointerEvents: 'none', zIndex: 0,
+            WebkitMaskImage: 'linear-gradient(to right, black 35%, transparent 88%)',
+            maskImage: 'linear-gradient(to right, black 35%, transparent 88%)',
+          }} />
+        <img src={`${BASE}assets/menu-doodle-right.png`} aria-hidden draggable={false}
+          style={{
+            position: 'absolute', right: 0, top: 0, bottom: 0,
+            width: '28%', height: '100%',
+            objectFit: 'cover', objectPosition: 'right center',
+            mixBlendMode: 'multiply', opacity: 0.85, pointerEvents: 'none', zIndex: 0,
+            WebkitMaskImage: 'linear-gradient(to left, black 35%, transparent 85%)',
+            maskImage: 'linear-gradient(to left, black 35%, transparent 85%)',
+          }} />
+
+        {/* Items grid sits above the side doodles */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{
@@ -205,6 +228,7 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
             </div>
           </div>
         )}
+        </div>{/* end items grid wrapper */}
       </div>
 
       {/* Footer art (@handle + doodles) extracted from the original design */}

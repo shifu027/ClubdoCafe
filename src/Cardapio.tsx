@@ -5,6 +5,11 @@ import { supabase, type CategoryWithItems, type MenuItem } from './lib/supabase'
 
 const BASE = import.meta.env.BASE_URL;
 
+/* ── Design palette (matched to the original art) ── */
+const CREAM = '#F2E7D4';
+const INK = '#241a12';
+const BROWN = '#9c6b3f';
+
 /* ── Helpers ── */
 function formatPrice(price: number) {
   if (price === 0) return 'Consultar';
@@ -14,24 +19,25 @@ function formatPrice(price: number) {
 /* ── Item row ── */
 function ItemRow({ item }: { item: MenuItem }) {
   const hasPromo = item.promo_price != null && item.promo_price > 0;
+  const out = !item.available;
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start',
       justifyContent: 'space-between', gap: 8,
-      padding: '3px 0',
-      opacity: item.available ? 1 : 0.45,
+      padding: '2.5px 0',
     }}>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{
-          fontSize: 12.5, color: '#2a1b12',
-          fontFamily: '"Outfit", sans-serif', fontWeight: 400,
-          textDecoration: !item.available ? 'line-through' : 'none',
+          fontSize: 12, color: INK,
+          fontFamily: '"Outfit", sans-serif', fontWeight: 600,
+          textDecoration: out ? 'line-through' : 'none',
+          opacity: out ? 0.5 : 1,
         }}>
           {item.name}
         </span>
-        {!item.available && (
+        {out && (
           <span style={{
-            marginLeft: 5, fontSize: 9, fontWeight: 700,
+            marginLeft: 5, fontSize: 8, fontWeight: 700,
             background: '#c0392b', color: '#fff',
             borderRadius: 3, padding: '1px 4px',
             letterSpacing: '0.05em', textTransform: 'uppercase',
@@ -40,35 +46,37 @@ function ItemRow({ item }: { item: MenuItem }) {
         )}
         {item.description ? (
           <p style={{
-            margin: '1px 0 0', fontSize: 9.5,
-            color: '#7a5431', fontFamily: '"Outfit", sans-serif',
-            fontStyle: 'italic', lineHeight: 1.3,
+            margin: '0', fontSize: 9, lineHeight: 1.25,
+            color: '#8a6a4a', fontFamily: '"Outfit", sans-serif',
+            fontStyle: 'italic', opacity: out ? 0.5 : 0.95,
           }}>{item.description}</p>
         ) : null}
       </div>
-      <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 54 }}>
+      <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 50,
+        opacity: out ? 0.5 : 1 }}>
         {hasPromo ? (
           <>
-            <div style={{
-              fontSize: 10, color: '#9a7a5a',
+            <span style={{
+              fontSize: 9.5, color: '#a98a6a',
               textDecoration: 'line-through',
-              fontFamily: '"Outfit", sans-serif',
-            }}>{formatPrice(item.price)}</div>
-            <div style={{
-              fontSize: 12.5, fontWeight: 700, color: '#936a44',
-              fontFamily: '"Outfit", sans-serif',
-            }}>{formatPrice(item.promo_price!)}</div>
+              fontFamily: '"Outfit", sans-serif', display: 'block',
+            }}>{formatPrice(item.price)}</span>
+            <span style={{
+              fontSize: 12, fontWeight: 700, color: BROWN,
+              fontFamily: '"Outfit", sans-serif', display: 'block',
+            }}>{formatPrice(item.promo_price!)}</span>
             {item.promo_label && (
-              <div style={{
-                fontSize: 8.5, color: '#936a44', fontStyle: 'italic',
-                fontFamily: '"Outfit", sans-serif',
-              }}>{item.promo_label}</div>
+              <span style={{
+                fontSize: 8, color: BROWN, fontStyle: 'italic',
+                fontFamily: '"Outfit", sans-serif', display: 'block',
+              }}>{item.promo_label}</span>
             )}
           </>
         ) : (
           <span style={{
-            fontSize: 12.5, fontWeight: 500,
-            color: '#2a1b12', fontFamily: '"Outfit", sans-serif',
+            fontSize: 12, fontWeight: 700,
+            color: INK, fontFamily: '"Outfit", sans-serif',
+            textDecoration: out ? 'line-through' : 'none',
           }}>{formatPrice(item.price)}</span>
         )}
       </div>
@@ -77,21 +85,23 @@ function ItemRow({ item }: { item: MenuItem }) {
 }
 
 /* ── Category block ── */
-function CategoryBlock({ cat }: { cat: CategoryWithItems }) {
+function CategoryBlock({ cat, boxed }: { cat: CategoryWithItems; boxed?: boolean }) {
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div style={{ marginBottom: 13 }}>
       <h2 style={{
-        fontFamily: '"Playfair Display", serif',
-        fontStyle: 'italic', fontWeight: 700,
-        fontSize: 18, color: '#2a1b12',
-        margin: '0 0 5px', textAlign: 'center',
-        borderBottom: '1.5px solid rgba(42,27,18,0.15)',
-        paddingBottom: 4,
+        fontFamily: '"Pacifico", cursive',
+        fontWeight: 400,
+        fontSize: 19, color: BROWN,
+        margin: '0 0 4px', textAlign: 'center',
+        lineHeight: 1,
       }}>
-        {cat.emoji && <span style={{ marginRight: 5 }}>{cat.emoji}</span>}
         {cat.name}
       </h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <div style={boxed ? {
+        border: `1.5px solid ${BROWN}`, borderRadius: 6,
+        padding: '7px 9px',
+        display: 'flex', flexDirection: 'column', gap: 1,
+      } : { display: 'flex', flexDirection: 'column', gap: 1 }}>
         {cat.items.map(item => <ItemRow key={item.id} item={item} />)}
       </div>
     </div>
@@ -103,7 +113,7 @@ function CoverPage() {
   return (
     <div style={{
       width: '100%',
-      background: '#f5ece0',
+      background: CREAM,
       borderRadius: 16,
       overflow: 'hidden',
       boxShadow: '0 12px 48px rgba(42,27,18,0.2)',
@@ -118,6 +128,10 @@ function CoverPage() {
   );
 }
 
+/* Categories shown in the left column, matching the original layout */
+const LEFT_COLUMN = ['Cafés', 'Salgados', 'Sobremesas'];
+const BOXED = ['Adicionais'];
+
 /* ── Menu page ── */
 function MenuPage({ categories, loading, fetchError, onRetry }: {
   categories: CategoryWithItems[];
@@ -125,72 +139,33 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
   fetchError: boolean;
   onRetry: () => void;
 }) {
+  const left = categories.filter(c => LEFT_COLUMN.includes(c.name));
+  const right = categories.filter(c => !LEFT_COLUMN.includes(c.name));
   return (
     <div style={{
       position: 'relative',
       width: '100%',
-      background: '#f5ece0',
-      borderRadius: 16,
+      background: CREAM,
+      borderRadius: 14,
       overflow: 'hidden',
-      boxShadow: '0 12px 48px rgba(42,27,18,0.2)',
+      boxShadow: '0 12px 48px rgba(42,27,18,0.22)',
     }}>
-      {/* SVG decorative overlay — watermark of the original design frame */}
+      {/* Header art (logo + doodles) extracted from the original design */}
       <img
-        src={`${BASE}assets/menu-items.svg`}
-        aria-hidden
+        src={`${BASE}assets/menu-header.png`}
+        alt="Club do Café — Menu"
         draggable={false}
-        style={{
-          position: 'absolute', inset: 0,
-          width: '100%', height: '100%',
-          objectFit: 'fill',
-          opacity: 0.055,
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
+        style={{ width: '100%', height: 'auto', display: 'block' }}
       />
 
-      {/* All content sits above the SVG watermark */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-
-      {/* Menu header */}
-      <div style={{
-        padding: '14px 16px 10px',
-        borderBottom: '2px solid rgba(42,27,18,0.12)',
-        textAlign: 'center',
-        background: 'rgba(255,255,255,0.4)',
-      }}>
-        <img
-          src={`${BASE}assets/logo.png`}
-          alt="Club do Café"
-          style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: '50%' }}
-        />
-        <div>
-          <span style={{
-            fontFamily: '"Outfit", sans-serif',
-            fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
-            textTransform: 'uppercase', color: '#936a44',
-          }}>Club do</span>
-          <h1 style={{
-            fontFamily: '"Playfair Display", serif',
-            fontWeight: 700, fontSize: 20, color: '#2a1b12',
-            margin: '-2px 0 0', letterSpacing: '0.04em',
-          }}>CAFÉ</h1>
-          <p style={{
-            fontFamily: '"Playfair Display", serif',
-            fontStyle: 'italic', color: '#936a44',
-            fontSize: 16, margin: 0,
-          }}>Menu</p>
-        </div>
-      </div>
-
       {/* Content */}
-      <div style={{ padding: '12px 16px 16px' }}>
+      <div style={{ padding: '4px 18px 6px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{
               width: 28, height: 28, borderRadius: '50%', margin: '0 auto 10px',
               border: '2.5px solid rgba(147,106,68,0.15)',
-              borderTopColor: '#936a44',
+              borderTopColor: BROWN,
               animation: 'spin 0.8s linear infinite',
             }} />
             <p style={{ fontSize: 12, color: '#7a5431', margin: 0 }}>Carregando…</p>
@@ -202,7 +177,7 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
             </p>
             <button onClick={onRetry} style={{
               padding: '7px 16px', borderRadius: 8, border: 'none',
-              background: '#936a44', color: '#fff',
+              background: BROWN, color: '#fff',
               fontFamily: '"Outfit", sans-serif', fontSize: 12, cursor: 'pointer',
             }}>Tentar novamente</button>
           </div>
@@ -215,39 +190,30 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '0 16px',
+            gap: '0 18px',
             alignItems: 'start',
           }}>
-            {/* Left column: Cafés, Salgados, Sobremesas */}
             <div>
-              {categories
-                .filter(c => ['Cafés', 'Salgados', 'Sobremesas'].includes(c.name))
-                .map(cat => <CategoryBlock key={cat.id} cat={cat} />)}
+              {left.map(cat => (
+                <CategoryBlock key={cat.id} cat={cat} boxed={BOXED.includes(cat.name)} />
+              ))}
             </div>
-            {/* Right column: Fit, Bebidas, Açaí, Adicionais + extras */}
             <div>
-              {categories
-                .filter(c => !['Cafés', 'Salgados', 'Sobremesas'].includes(c.name))
-                .map(cat => <CategoryBlock key={cat.id} cat={cat} />)}
+              {right.map(cat => (
+                <CategoryBlock key={cat.id} cat={cat} boxed={BOXED.includes(cat.name)} />
+              ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div style={{
-        borderTop: '1px solid rgba(42,27,18,0.1)',
-        padding: '8px 16px',
-        textAlign: 'center',
-        background: 'rgba(255,255,255,0.3)',
-      }}>
-        <p style={{
-          fontSize: 10, color: '#7a5431', margin: 0,
-          fontFamily: '"Outfit", sans-serif', letterSpacing: '0.08em',
-        }}>@CLUB.DO.CAFE</p>
-      </div>
-
-      </div>{/* end content wrapper */}
+      {/* Footer art (@handle + doodles) extracted from the original design */}
+      <img
+        src={`${BASE}assets/menu-footer.png`}
+        alt="@club.do.cafe"
+        draggable={false}
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+      />
     </div>
   );
 }

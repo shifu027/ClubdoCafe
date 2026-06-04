@@ -45,19 +45,23 @@ const iconBtn = (
   icon: React.ReactNode,
   onClick: () => void,
   title: string,
-  style?: React.CSSProperties
+  style?: React.CSSProperties,
+  disabled = false
 ) => (
   <button
-    onClick={onClick}
+    onClick={disabled ? undefined : onClick}
     title={title}
+    aria-label={title}
+    disabled={disabled}
     style={{
       width: 32, height: 32, borderRadius: 8, border: 'none',
-      background: 'transparent', cursor: 'pointer',
+      background: 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: '#7a5431', transition: 'background 0.15s',
+      opacity: disabled ? 0.35 : 1,
       ...style,
     }}
-    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(147,106,68,0.12)')}
+    onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = 'rgba(147,106,68,0.12)'; }}
     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
   >
     {icon}
@@ -390,6 +394,8 @@ function Dashboard({ session }: { session: Session }) {
   const [modal, setModal] = useState<ModalState>({ type: 'none' });
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const busy = deletingId !== null || togglingId !== null;
 
   const loadData = async () => {
     const { data: cats } = await supabase.from('menu_categories').select('*').order('display_order');
@@ -430,7 +436,10 @@ function Dashboard({ session }: { session: Session }) {
   };
 
   const toggleAvailable = async (item: MenuItem) => {
+    if (busy) return;
+    setTogglingId(item.id);
     await supabase.from('menu_items').update({ available: !item.available }).eq('id', item.id);
+    setTogglingId(null);
     loadData();
   };
 
@@ -564,12 +573,13 @@ function Dashboard({ session }: { session: Session }) {
                       : <ChevronDown size={14} style={{ marginLeft: 'auto', color: '#9a7a5a' }} />
                     }
                   </button>
-                  {iconBtn(<Pencil size={14} />, () => setModal({ type: 'edit_category', category: cat }), 'Editar categoria')}
+                  {iconBtn(<Pencil size={14} />, () => setModal({ type: 'edit_category', category: cat }), 'Editar categoria', undefined, busy)}
                   {iconBtn(
                     deletingId === cat.id ? '…' : <Trash2 size={14} />,
                     () => deleteCategory(cat.id),
                     'Excluir categoria',
-                    { color: '#b04040' }
+                    { color: '#b04040' },
+                    busy
                   )}
                 </div>
 
@@ -605,17 +615,19 @@ function Dashboard({ session }: { session: Session }) {
                         {/* Availability toggle */}
                         <button
                           onClick={() => toggleAvailable(item)}
+                          disabled={busy}
                           title={item.available ? 'Marcar como Esgotado' : 'Marcar como Disponível'}
+                          aria-label={item.available ? 'Marcar como Esgotado' : 'Marcar como Disponível'}
                           style={{
                             flexShrink: 0, width: 28, height: 28, borderRadius: 8,
-                            border: 'none', cursor: 'pointer',
+                            border: 'none', cursor: busy ? 'not-allowed' : 'pointer',
                             background: item.available ? 'rgba(60,180,80,0.12)' : 'rgba(176,64,64,0.12)',
                             color: item.available ? '#2e8b40' : '#b04040',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 14,
+                            fontSize: 14, opacity: busy ? 0.4 : 1, transition: 'opacity 0.15s',
                           }}
                         >
-                          {item.available ? '✓' : '✗'}
+                          {togglingId === item.id ? '…' : item.available ? '✓' : '✗'}
                         </button>
 
                         {/* Item info */}
@@ -653,12 +665,13 @@ function Dashboard({ session }: { session: Session }) {
 
                         {/* Actions */}
                         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                          {iconBtn(<Pencil size={13} />, () => setModal({ type: 'edit_item', item }), 'Editar item')}
+                          {iconBtn(<Pencil size={13} />, () => setModal({ type: 'edit_item', item }), 'Editar item', undefined, busy)}
                           {iconBtn(
                             deletingId === item.id ? '…' : <Trash2 size={13} />,
                             () => deleteItem(item.id),
                             'Excluir item',
-                            { color: '#b04040' }
+                            { color: '#b04040' },
+                            busy
                           )}
                         </div>
                       </div>

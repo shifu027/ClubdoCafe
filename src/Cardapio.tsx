@@ -158,8 +158,28 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
         style={{ width: '100%', height: 'auto', display: 'block' }}
       />
 
-      {/* Content */}
-      <div style={{ padding: '4px 18px 6px' }}>
+      {/* Content — static decorative rails on the sides, dynamic items in the middle */}
+      <div style={{ position: 'relative' }}>
+
+        {/* Static left rail (coffee cups + leaf) — clean art, no overlap with text */}
+        <img src={`${BASE}assets/menu-rail-left.png`} aria-hidden draggable={false}
+          style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0,
+            width: 30, height: '100%',
+            objectFit: 'cover', objectPosition: 'center top',
+            pointerEvents: 'none', zIndex: 0,
+          }} />
+        {/* Static right rail (coffee bean + leaves) */}
+        <img src={`${BASE}assets/menu-rail-right.png`} aria-hidden draggable={false}
+          style={{
+            position: 'absolute', right: 0, top: 0, bottom: 0,
+            width: 26, height: '100%',
+            objectFit: 'cover', objectPosition: 'center top',
+            pointerEvents: 'none', zIndex: 0,
+          }} />
+
+        {/* Dynamic items — padded clear of the side rails */}
+        <div style={{ position: 'relative', zIndex: 1, padding: '4px 36px 6px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{
@@ -205,6 +225,7 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
             </div>
           </div>
         )}
+        </div>{/* end items grid wrapper */}
       </div>
 
       {/* Footer art (@handle + doodles) extracted from the original design */}

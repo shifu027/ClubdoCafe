@@ -1,16 +1,237 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, type PanInfo } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { supabase, type MenuItem } from './lib/supabase';
+import { supabase, type CategoryWithItems, type MenuItem } from './lib/supabase';
 
 const BASE = import.meta.env.BASE_URL;
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const menuPages = [
-  { src: `${BASE}assets/menu-capa.jpg`, alt: 'Capa do Cardápio' },
-  { src: `${BASE}assets/menu.jpg`, alt: 'Cardápio' },
-];
+/* ── Helpers ── */
+function formatPrice(price: number) {
+  if (price === 0) return 'Consultar';
+  return `$ ${price.toFixed(2).replace('.', ',')}`;
+}
 
+/* ── Item row ── */
+function ItemRow({ item }: { item: MenuItem }) {
+  const hasPromo = item.promo_price != null && item.promo_price > 0;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'flex-start',
+      justifyContent: 'space-between', gap: 8,
+      padding: '3px 0',
+      opacity: item.available ? 1 : 0.45,
+    }}>
+      <div style={{ flex: 1 }}>
+        <span style={{
+          fontSize: 12.5, color: '#2a1b12',
+          fontFamily: '"Outfit", sans-serif', fontWeight: 400,
+          textDecoration: !item.available ? 'line-through' : 'none',
+        }}>
+          {item.name}
+        </span>
+        {!item.available && (
+          <span style={{
+            marginLeft: 5, fontSize: 9, fontWeight: 700,
+            background: '#c0392b', color: '#fff',
+            borderRadius: 3, padding: '1px 4px',
+            letterSpacing: '0.05em', textTransform: 'uppercase',
+            verticalAlign: 'middle',
+          }}>Esgotado</span>
+        )}
+        {item.description ? (
+          <p style={{
+            margin: '1px 0 0', fontSize: 9.5,
+            color: '#7a5431', fontFamily: '"Outfit", sans-serif',
+            fontStyle: 'italic', lineHeight: 1.3,
+          }}>{item.description}</p>
+        ) : null}
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 54 }}>
+        {hasPromo ? (
+          <>
+            <div style={{
+              fontSize: 10, color: '#9a7a5a',
+              textDecoration: 'line-through',
+              fontFamily: '"Outfit", sans-serif',
+            }}>{formatPrice(item.price)}</div>
+            <div style={{
+              fontSize: 12.5, fontWeight: 700, color: '#936a44',
+              fontFamily: '"Outfit", sans-serif',
+            }}>{formatPrice(item.promo_price!)}</div>
+            {item.promo_label && (
+              <div style={{
+                fontSize: 8.5, color: '#936a44', fontStyle: 'italic',
+                fontFamily: '"Outfit", sans-serif',
+              }}>{item.promo_label}</div>
+            )}
+          </>
+        ) : (
+          <span style={{
+            fontSize: 12.5, fontWeight: 500,
+            color: '#2a1b12', fontFamily: '"Outfit", sans-serif',
+          }}>{formatPrice(item.price)}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Category block ── */
+function CategoryBlock({ cat }: { cat: CategoryWithItems }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <h2 style={{
+        fontFamily: '"Playfair Display", serif',
+        fontStyle: 'italic', fontWeight: 700,
+        fontSize: 18, color: '#2a1b12',
+        margin: '0 0 5px', textAlign: 'center',
+        borderBottom: '1.5px solid rgba(42,27,18,0.15)',
+        paddingBottom: 4,
+      }}>
+        {cat.emoji && <span style={{ marginRight: 5 }}>{cat.emoji}</span>}
+        {cat.name}
+      </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {cat.items.map(item => <ItemRow key={item.id} item={item} />)}
+      </div>
+    </div>
+  );
+}
+
+/* ── Cover page ── */
+function CoverPage() {
+  return (
+    <div style={{
+      width: '100%',
+      background: '#f5ece0',
+      borderRadius: 16,
+      overflow: 'hidden',
+      boxShadow: '0 12px 48px rgba(42,27,18,0.2)',
+    }}>
+      <img
+        src={`${BASE}assets/menu-capa.jpg`}
+        alt="Capa do Cardápio"
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+        draggable={false}
+      />
+    </div>
+  );
+}
+
+/* ── Menu page ── */
+function MenuPage({ categories, loading, fetchError, onRetry }: {
+  categories: CategoryWithItems[];
+  loading: boolean;
+  fetchError: boolean;
+  onRetry: () => void;
+}) {
+  return (
+    <div style={{
+      width: '100%',
+      background: '#f5ece0',
+      borderRadius: 16,
+      overflow: 'hidden',
+      boxShadow: '0 12px 48px rgba(42,27,18,0.2)',
+    }}>
+      {/* Menu header */}
+      <div style={{
+        padding: '14px 16px 10px',
+        borderBottom: '2px solid rgba(42,27,18,0.12)',
+        textAlign: 'center',
+        background: 'rgba(255,255,255,0.4)',
+      }}>
+        <img
+          src={`${BASE}assets/logo.png`}
+          alt="Club do Café"
+          style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: '50%' }}
+        />
+        <div>
+          <span style={{
+            fontFamily: '"Outfit", sans-serif',
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: '#936a44',
+          }}>Club do</span>
+          <h1 style={{
+            fontFamily: '"Playfair Display", serif',
+            fontWeight: 700, fontSize: 20, color: '#2a1b12',
+            margin: '-2px 0 0', letterSpacing: '0.04em',
+          }}>CAFÉ</h1>
+          <p style={{
+            fontFamily: '"Playfair Display", serif',
+            fontStyle: 'italic', color: '#936a44',
+            fontSize: 16, margin: 0,
+          }}>Menu</p>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '12px 16px 16px' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: '50%', margin: '0 auto 10px',
+              border: '2.5px solid rgba(147,106,68,0.15)',
+              borderTopColor: '#936a44',
+              animation: 'spin 0.8s linear infinite',
+            }} />
+            <p style={{ fontSize: 12, color: '#7a5431', margin: 0 }}>Carregando…</p>
+          </div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '30px 0' }}>
+            <p style={{ color: '#b04040', fontSize: 13, marginBottom: 10 }}>
+              Erro ao carregar. Verifique a conexão.
+            </p>
+            <button onClick={onRetry} style={{
+              padding: '7px 16px', borderRadius: 8, border: 'none',
+              background: '#936a44', color: '#fff',
+              fontFamily: '"Outfit", sans-serif', fontSize: 12, cursor: 'pointer',
+            }}>Tentar novamente</button>
+          </div>
+        ) : categories.length === 0 ? (
+          <p style={{ textAlign: 'center', fontSize: 13, color: '#9a7a5a', padding: '30px 0' }}>
+            Cardápio em preparação…
+          </p>
+        ) : (
+          /* Two-column layout matching the image */
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '0 16px',
+            alignItems: 'start',
+          }}>
+            {/* Left column: Cafés, Salgados, Sobremesas */}
+            <div>
+              {categories
+                .filter(c => ['Cafés', 'Salgados', 'Sobremesas'].includes(c.name))
+                .map(cat => <CategoryBlock key={cat.id} cat={cat} />)}
+            </div>
+            {/* Right column: Fit, Bebidas, Açaí, Adicionais + extras */}
+            <div>
+              {categories
+                .filter(c => !['Cafés', 'Salgados', 'Sobremesas'].includes(c.name))
+                .map(cat => <CategoryBlock key={cat.id} cat={cat} />)}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        borderTop: '1px solid rgba(42,27,18,0.1)',
+        padding: '8px 16px',
+        textAlign: 'center',
+        background: 'rgba(255,255,255,0.3)',
+      }}>
+        <p style={{
+          fontSize: 10, color: '#7a5431', margin: 0,
+          fontFamily: '"Outfit", sans-serif', letterSpacing: '0.08em',
+        }}>@CLUB.DO.CAFE</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Page flip variants ── */
 const pageVariants = {
   enter: (dir: number) => ({
     x: dir > 0 ? '105%' : '-105%',
@@ -24,7 +245,6 @@ const pageVariants = {
     opacity: 0, scale: 0.88,
   }),
 };
-
 const spring = {
   x: { type: 'spring' as const, stiffness: 340, damping: 38 },
   rotateY: { type: 'spring' as const, stiffness: 340, damping: 38 },
@@ -32,31 +252,42 @@ const spring = {
   scale: { type: 'spring' as const, stiffness: 340, damping: 38 },
 };
 
+/* ── Main ── */
 export default function Cardapio() {
   const [page, setPage] = useState(0);
   const [direction, setDirection] = useState(0);
   const [showHint, setShowHint] = useState(true);
-  const [esgotados, setEsgotados] = useState<MenuItem[]>([]);
-  const [promos, setPromos] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<CategoryWithItems[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
-  /* ── Data ── */
-  const fetchStatus = async () => {
-    const { data, error } = await supabase
-      .from('menu_items')
-      .select('*')
-      .or('available.eq.false,promo_price.not.is.null');
-    if (error || !data) return;
-    setEsgotados(data.filter(i => !i.available));
-    setPromos(data.filter(i => i.available && i.promo_price != null));
+  const fetchData = async () => {
+    const [{ data: cats, error: catsErr }, { data: items, error: itemsErr }] = await Promise.all([
+      supabase.from('menu_categories').select('*').order('display_order'),
+      supabase.from('menu_items').select('*').order('display_order'),
+    ]);
+    if (catsErr || itemsErr) {
+      if (categories.length === 0) setFetchError(true);
+      setLoading(false);
+      return;
+    }
+    setFetchError(false);
+    if (cats && items) {
+      setCategories(cats.map(c => ({
+        ...c,
+        items: items.filter(i => i.category_id === c.id),
+      })));
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchStatus();
-    const channel = supabase
-      .channel('cardapio-status')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items' }, fetchStatus)
+    fetchData();
+    const ch = supabase.channel('cardapio-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_categories' }, fetchData)
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { supabase.removeChannel(ch); };
   }, []);
 
   useEffect(() => {
@@ -64,9 +295,8 @@ export default function Cardapio() {
     return () => clearTimeout(t);
   }, []);
 
-  /* ── Navigation ── */
   const navigate = (newPage: number) => {
-    if (newPage < 0 || newPage >= menuPages.length) return;
+    if (newPage < 0 || newPage >= 2) return;
     setDirection(newPage > page ? 1 : -1);
     setPage(newPage);
     setShowHint(false);
@@ -75,11 +305,8 @@ export default function Cardapio() {
   const handleDragEnd = (_: PointerEvent, info: PanInfo) => {
     const swipe = Math.abs(info.offset.x) > 50 || Math.abs(info.velocity.x) > 400;
     if (!swipe) return;
-    if (info.offset.x < 0 || info.velocity.x < 0) navigate(page + 1);
-    else navigate(page - 1);
+    navigate(info.offset.x < 0 || info.velocity.x < 0 ? page + 1 : page - 1);
   };
-
-  const hasStatus = esgotados.length > 0 || promos.length > 0;
 
   return (
     <div style={{
@@ -105,17 +332,16 @@ export default function Cardapio() {
         animation: 'drift2 20s ease-in-out infinite',
       }} />
 
-      {/* ── Header ── */}
+      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.5 }}
         style={{
-          width: '100%', padding: '28px 20px 14px', zIndex: 10,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+          width: '100%', padding: '22px 20px 12px', zIndex: 10,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
         }}
       >
-        {/* Logo ring */}
         <div style={{ position: 'relative' }}>
           <div style={{
             position: 'absolute', inset: -4, borderRadius: '50%',
@@ -123,15 +349,12 @@ export default function Cardapio() {
             animation: 'spin 7s linear infinite',
           }} />
           <div style={{ position: 'relative', borderRadius: '50%', background: '#fdfbf7', padding: 3 }}>
-            <img
-              src={`${BASE}assets/logo.png`}
-              alt="Club do Café"
-              style={{ width: 62, height: 62, objectFit: 'contain', borderRadius: '50%', display: 'block' }}
-            />
+            <img src={`${BASE}assets/logo.png`} alt="Club do Café"
+              style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: '50%', display: 'block' }} />
           </div>
           <div style={{
             position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-            top: -16, display: 'flex', gap: 10,
+            top: -14, display: 'flex', gap: 10,
           }}>
             {[0, 0.7, 1.4].map((d, i) => (
               <span key={i} style={{
@@ -145,20 +368,20 @@ export default function Cardapio() {
         <div style={{ textAlign: 'center' }}>
           <p style={{
             fontSize: 10, fontWeight: 700, letterSpacing: '0.3em',
-            textTransform: 'uppercase', color: '#936a44', margin: '0 0 4px',
+            textTransform: 'uppercase', color: '#936a44', margin: '0 0 2px',
           }}>── Club do Café ──</p>
           <h1 style={{
             fontFamily: '"Playfair Display", serif',
-            fontSize: 28, fontWeight: 700, color: '#2a1b12', margin: 0,
+            fontSize: 24, fontWeight: 700, color: '#2a1b12', margin: 0,
           }}>Cardápio Digital</h1>
         </div>
       </motion.header>
 
-      {/* ── Carousel ── */}
+      {/* Carousel */}
       <div style={{
-        flex: 1, width: '100%', maxWidth: 480,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '4px 16px', position: 'relative', zIndex: 10,
+        flex: 1, width: '100%', maxWidth: 500,
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        padding: '4px 14px', position: 'relative', zIndex: 10,
         overflow: 'hidden', perspective: '1400px',
       }}>
         <AnimatePresence custom={direction} mode="wait">
@@ -174,66 +397,52 @@ export default function Cardapio() {
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.15}
             onDragEnd={handleDragEnd}
-            style={{
-              width: '100%', cursor: 'grab', userSelect: 'none',
-              borderRadius: 20, overflow: 'hidden',
-              boxShadow: [
-                '0 2px 4px rgba(42,27,18,0.08)',
-                '0 8px 24px rgba(42,27,18,0.12)',
-                '0 24px 64px -8px rgba(42,27,18,0.25)',
-              ].join(', '),
-              willChange: 'transform',
-            }}
+            style={{ width: '100%', cursor: 'grab', userSelect: 'none', willChange: 'transform' }}
             whileTap={{ cursor: 'grabbing', scale: 0.985 }}
           >
-            <img
-              src={menuPages[page].src}
-              alt={menuPages[page].alt}
-              style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
-              draggable={false}
-            />
+            {page === 0
+              ? <CoverPage />
+              : <MenuPage
+                  categories={categories}
+                  loading={loading}
+                  fetchError={fetchError}
+                  onRetry={() => { setFetchError(false); setLoading(true); fetchData(); }}
+                />
+            }
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* ── Navigation ── */}
+      {/* Navigation */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
         style={{
-          width: '100%', padding: '10px 24px 0',
+          width: '100%', padding: '10px 24px 28px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
           zIndex: 10,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <motion.button
-            onClick={() => navigate(page - 1)}
-            disabled={page === 0}
+            onClick={() => navigate(page - 1)} disabled={page === 0}
             whileHover={page > 0 ? { scale: 1.08 } : {}}
             whileTap={page > 0 ? { scale: 0.92 } : {}}
             style={{
-              width: 48, height: 48, borderRadius: '50%',
+              width: 46, height: 46, borderRadius: '50%',
               background: 'rgba(147,106,68,0.1)',
               border: `1.5px solid ${page === 0 ? 'rgba(147,106,68,0.15)' : 'rgba(147,106,68,0.35)'}`,
               color: page === 0 ? 'rgba(147,106,68,0.25)' : '#7a5431',
               cursor: page === 0 ? 'default' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
-          >
-            <ChevronLeft size={22} />
-          </motion.button>
+          ><ChevronLeft size={20} /></motion.button>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {menuPages.map((_, i) => (
-              <motion.button
-                key={i}
-                onClick={() => navigate(i)}
-                animate={{
-                  width: i === page ? 28 : 8,
-                  background: i === page ? '#936a44' : 'rgba(147,106,68,0.28)',
-                }}
+            {[0, 1].map(i => (
+              <motion.button key={i} onClick={() => navigate(i)}
+                animate={{ width: i === page ? 26 : 8, background: i === page ? '#936a44' : 'rgba(147,106,68,0.28)' }}
                 transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                 style={{ height: 8, borderRadius: 4, border: 'none', padding: 0, cursor: 'pointer' }}
               />
@@ -241,161 +450,35 @@ export default function Cardapio() {
           </div>
 
           <motion.button
-            onClick={() => navigate(page + 1)}
-            disabled={page === menuPages.length - 1}
-            whileHover={page < menuPages.length - 1 ? { scale: 1.08 } : {}}
-            whileTap={page < menuPages.length - 1 ? { scale: 0.92 } : {}}
+            onClick={() => navigate(page + 1)} disabled={page === 1}
+            whileHover={page < 1 ? { scale: 1.08 } : {}}
+            whileTap={page < 1 ? { scale: 0.92 } : {}}
             style={{
-              width: 48, height: 48, borderRadius: '50%',
-              background: page < menuPages.length - 1 ? '#936a44' : 'rgba(147,106,68,0.1)',
-              border: `1.5px solid ${page < menuPages.length - 1 ? '#936a44' : 'rgba(147,106,68,0.15)'}`,
-              color: page < menuPages.length - 1 ? '#fff' : 'rgba(147,106,68,0.25)',
-              cursor: page === menuPages.length - 1 ? 'default' : 'pointer',
+              width: 46, height: 46, borderRadius: '50%',
+              background: page < 1 ? '#936a44' : 'rgba(147,106,68,0.1)',
+              border: `1.5px solid ${page < 1 ? '#936a44' : 'rgba(147,106,68,0.15)'}`,
+              color: page < 1 ? '#fff' : 'rgba(147,106,68,0.25)',
+              cursor: page === 1 ? 'default' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: page < menuPages.length - 1 ? '0 4px 14px rgba(147,106,68,0.35)' : 'none',
+              boxShadow: page < 1 ? '0 4px 14px rgba(147,106,68,0.35)' : 'none',
             }}
-          >
-            <ChevronRight size={22} />
-          </motion.button>
+          ><ChevronRight size={20} /></motion.button>
         </div>
 
-        {/* Swipe hint */}
         <AnimatePresence>
           {showHint && (
             <motion.p
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               style={{ fontSize: 11, color: 'rgba(122,84,49,0.5)', margin: 0,
                 display: 'flex', alignItems: 'center', gap: 5 }}
             >
               <motion.span animate={{ x: [-3, 3, -3] }} transition={{ duration: 1.4, repeat: Infinity }}>←</motion.span>
-              Deslize para virar a página
+              Deslize para ver o cardápio
               <motion.span animate={{ x: [3, -3, 3] }} transition={{ duration: 1.4, repeat: Infinity }}>→</motion.span>
             </motion.p>
           )}
         </AnimatePresence>
       </motion.div>
-
-      {/* ── Status ao Vivo ── */}
-      <AnimatePresence>
-        {hasStatus && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              width: '100%', maxWidth: 480,
-              margin: '12px 0 0', padding: '0 16px 28px',
-              zIndex: 10,
-            }}
-          >
-            <div style={{
-              background: 'rgba(255,255,255,0.65)',
-              backdropFilter: 'blur(12px)',
-              borderRadius: 16,
-              border: '1px solid rgba(147,106,68,0.15)',
-              overflow: 'hidden',
-            }}>
-              {/* Header */}
-              <div style={{
-                background: 'linear-gradient(135deg, #2a1b12, #4a2e1c)',
-                padding: '8px 14px',
-                display: 'flex', alignItems: 'center', gap: 7,
-              }}>
-                <span style={{ fontSize: 12 }}>📋</span>
-                <span style={{
-                  fontFamily: '"Playfair Display", serif',
-                  fontSize: 13, fontWeight: 600, color: '#c89b6a',
-                  letterSpacing: '0.04em',
-                }}>Status ao Vivo</span>
-                <span style={{
-                  marginLeft: 'auto', fontSize: 9, fontWeight: 700,
-                  letterSpacing: '0.12em', textTransform: 'uppercase',
-                  color: 'rgba(200,155,106,0.6)',
-                }}>Tempo real</span>
-              </div>
-
-              <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {/* Esgotados */}
-                {esgotados.length > 0 && (
-                  <div>
-                    <p style={{
-                      fontSize: 10, fontWeight: 700, color: '#b04040',
-                      textTransform: 'uppercase', letterSpacing: '0.1em',
-                      margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4,
-                    }}>
-                      <span>✗</span> Esgotado
-                    </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                      {esgotados.map(item => (
-                        <span key={item.id} style={{
-                          fontSize: 12, fontWeight: 500, color: '#b04040',
-                          background: 'rgba(176,64,64,0.08)',
-                          border: '1px solid rgba(176,64,64,0.2)',
-                          borderRadius: 6, padding: '3px 9px',
-                        }}>
-                          {item.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Promoções */}
-                {promos.length > 0 && (
-                  <div>
-                    <p style={{
-                      fontSize: 10, fontWeight: 700, color: '#936a44',
-                      textTransform: 'uppercase', letterSpacing: '0.1em',
-                      margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4,
-                    }}>
-                      <span>🏷️</span> {promos.length === 1 ? 'Promoção' : 'Promoções'}
-                    </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      {promos.map(item => (
-                        <div key={item.id} style={{
-                          display: 'flex', alignItems: 'center',
-                          justifyContent: 'space-between',
-                          background: 'rgba(147,106,68,0.07)',
-                          border: '1px solid rgba(147,106,68,0.18)',
-                          borderRadius: 8, padding: '5px 10px',
-                        }}>
-                          <div>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: '#2a1b12' }}>
-                              {item.name}
-                            </span>
-                            {item.promo_label && (
-                              <span style={{
-                                fontSize: 10, color: '#936a44', marginLeft: 6,
-                                fontStyle: 'italic',
-                              }}>
-                                {item.promo_label}
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ textAlign: 'right', marginLeft: 12 }}>
-                            <div style={{ fontSize: 11, color: '#9a7a5a', textDecoration: 'line-through' }}>
-                              {BRL.format(item.price)}
-                            </div>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: '#936a44' }}>
-                              {BRL.format(item.promo_price!)}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Spacer when no status */}
-      {!hasStatus && <div style={{ height: 28 }} />}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -404,18 +487,10 @@ export default function Cardapio() {
           25%  { opacity: 0.7; }
           100% { transform: translateY(-22px) scale(1.5); opacity: 0; }
         }
-        @keyframes drift1 {
-          0%, 100% { transform: translate(0, 0); }
-          50%       { transform: translate(-22px, 20px); }
-        }
-        @keyframes drift2 {
-          0%, 100% { transform: translate(0, 0); }
-          50%       { transform: translate(24px, -16px); }
-        }
+        @keyframes drift1 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-22px,20px); } }
+        @keyframes drift2 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(24px,-16px); } }
         * { -webkit-tap-highlight-color: transparent; }
-        @media (prefers-reduced-motion: reduce) {
-          * { animation: none !important; }
-        }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
       `}</style>
     </div>
   );

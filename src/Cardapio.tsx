@@ -158,31 +158,28 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
         style={{ width: '100%', height: 'auto', display: 'block' }}
       />
 
-      {/* Content */}
-      <div style={{ position: 'relative', padding: '4px 18px 6px' }}>
+      {/* Content — static decorative rails on the sides, dynamic items in the middle */}
+      <div style={{ position: 'relative' }}>
 
-        {/* Side doodles — fade mask hides center bleed, multiply hides cream background */}
-        <img src={`${BASE}assets/menu-doodle-left.png`} aria-hidden draggable={false}
+        {/* Static left rail (coffee cups + leaf) — clean art, no overlap with text */}
+        <img src={`${BASE}assets/menu-rail-left.png`} aria-hidden draggable={false}
           style={{
             position: 'absolute', left: 0, top: 0, bottom: 0,
-            width: '22%', height: '100%',
-            objectFit: 'cover', objectPosition: 'left center',
-            mixBlendMode: 'multiply', opacity: 0.85, pointerEvents: 'none', zIndex: 0,
-            WebkitMaskImage: 'linear-gradient(to right, black 35%, transparent 88%)',
-            maskImage: 'linear-gradient(to right, black 35%, transparent 88%)',
+            width: 30, height: '100%',
+            objectFit: 'cover', objectPosition: 'center top',
+            pointerEvents: 'none', zIndex: 0,
           }} />
-        <img src={`${BASE}assets/menu-doodle-right.png`} aria-hidden draggable={false}
+        {/* Static right rail (coffee bean + leaves) */}
+        <img src={`${BASE}assets/menu-rail-right.png`} aria-hidden draggable={false}
           style={{
             position: 'absolute', right: 0, top: 0, bottom: 0,
-            width: '28%', height: '100%',
-            objectFit: 'cover', objectPosition: 'right center',
-            mixBlendMode: 'multiply', opacity: 0.85, pointerEvents: 'none', zIndex: 0,
-            WebkitMaskImage: 'linear-gradient(to left, black 35%, transparent 85%)',
-            maskImage: 'linear-gradient(to left, black 35%, transparent 85%)',
+            width: 26, height: '100%',
+            objectFit: 'cover', objectPosition: 'center top',
+            pointerEvents: 'none', zIndex: 0,
           }} />
 
-        {/* Items grid sits above the side doodles */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Dynamic items — padded clear of the side rails */}
+        <div style={{ position: 'relative', zIndex: 1, padding: '4px 36px 6px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{

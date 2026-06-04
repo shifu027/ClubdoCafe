@@ -22,11 +22,12 @@ function ItemRow({ item }: { item: MenuItem }) {
   const out = !item.available;
   return (
     <div style={{
-      display: 'flex', alignItems: 'flex-start',
-      justifyContent: 'space-between', gap: 8,
-      padding: '2.5px 0',
+      display: 'grid',
+      gridTemplateColumns: '1fr 62px',
+      columnGap: 8, alignItems: 'baseline',
+      padding: '3px 0',
     }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ minWidth: 0 }}>
         <span style={{
           fontSize: 12, color: INK,
           fontFamily: '"Outfit", sans-serif', fontWeight: 600,
@@ -52,7 +53,7 @@ function ItemRow({ item }: { item: MenuItem }) {
           }}>{item.description}</p>
         ) : null}
       </div>
-      <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 50,
+      <div style={{ textAlign: 'right', whiteSpace: 'nowrap',
         opacity: out ? 0.5 : 1 }}>
         {hasPromo ? (
           <>
@@ -87,19 +88,19 @@ function ItemRow({ item }: { item: MenuItem }) {
 /* ── Category block ── */
 function CategoryBlock({ cat, boxed }: { cat: CategoryWithItems; boxed?: boolean }) {
   return (
-    <div style={{ marginBottom: 13 }}>
+    <div style={{ marginBottom: 16 }}>
       <h2 style={{
-        fontFamily: '"Pacifico", cursive',
-        fontWeight: 400,
-        fontSize: 19, color: BROWN,
-        margin: '0 0 4px', textAlign: 'center',
-        lineHeight: 1,
+        fontFamily: '"Dancing Script", cursive',
+        fontWeight: 700,
+        fontSize: 28, color: BROWN,
+        margin: '0 0 5px', textAlign: 'center',
+        lineHeight: 1, letterSpacing: '0.5px',
       }}>
         {cat.name}
       </h2>
       <div style={boxed ? {
-        border: `1.5px solid ${BROWN}`, borderRadius: 6,
-        padding: '7px 9px',
+        border: `1.5px dashed ${BROWN}`, borderRadius: 8,
+        padding: '8px 11px',
         display: 'flex', flexDirection: 'column', gap: 1,
       } : { display: 'flex', flexDirection: 'column', gap: 1 }}>
         {cat.items.map(item => <ItemRow key={item.id} item={item} />)}
@@ -158,28 +159,30 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
         style={{ width: '100%', height: 'auto', display: 'block' }}
       />
 
-      {/* Content — static decorative rails on the sides, dynamic items in the middle */}
-      <div style={{ position: 'relative' }}>
+      {/* Content area — decorative doodles behind, dashed-framed menu in front */}
+      <div style={{ position: 'relative', overflow: 'hidden', padding: '6px 10px 12px' }}>
 
-        {/* Static left rail (coffee cups + leaf) — clean art, no overlap with text */}
+        {/* Static left doodle (coffee cups + leaf) — natural aspect, subtle, behind */}
         <img src={`${BASE}assets/menu-rail-left.png`} aria-hidden draggable={false}
           style={{
-            position: 'absolute', left: 0, top: 0, bottom: 0,
-            width: 30, height: '100%',
-            objectFit: 'cover', objectPosition: 'center top',
-            pointerEvents: 'none', zIndex: 0,
+            position: 'absolute', left: -2, top: 8,
+            width: 26, height: 'auto',
+            opacity: 0.5, pointerEvents: 'none', zIndex: 0,
           }} />
-        {/* Static right rail (coffee bean + leaves) */}
+        {/* Static right doodle (coffee bean + leaves) — reduced so it isn't oversized */}
         <img src={`${BASE}assets/menu-rail-right.png`} aria-hidden draggable={false}
           style={{
-            position: 'absolute', right: 0, top: 0, bottom: 0,
-            width: 26, height: '100%',
-            objectFit: 'cover', objectPosition: 'center top',
-            pointerEvents: 'none', zIndex: 0,
+            position: 'absolute', right: -2, top: 40,
+            width: 20, height: 'auto',
+            opacity: 0.5, pointerEvents: 'none', zIndex: 0,
           }} />
 
-        {/* Dynamic items — padded clear of the side rails */}
-        <div style={{ position: 'relative', zIndex: 1, padding: '4px 36px 6px' }}>
+        {/* Dashed frame border around the whole menu, with internal breathing room */}
+        <div style={{
+          position: 'relative', zIndex: 1,
+          border: `1.5px dashed ${BROWN}`, borderRadius: 12,
+          padding: '14px 16px 16px',
+        }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{
@@ -206,26 +209,33 @@ function MenuPage({ categories, loading, fetchError, onRetry }: {
             Cardápio em preparação…
           </p>
         ) : (
-          /* Two-column layout matching the image */
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '0 18px',
-            alignItems: 'start',
-          }}>
-            <div>
-              {left.map(cat => (
-                <CategoryBlock key={cat.id} cat={cat} boxed={BOXED.includes(cat.name)} />
-              ))}
-            </div>
-            <div>
-              {right.map(cat => (
-                <CategoryBlock key={cat.id} cat={cat} boxed={BOXED.includes(cat.name)} />
-              ))}
+          /* Two-column layout matching the image, with a full-height dashed divider */
+          <div style={{ position: 'relative' }}>
+            <div aria-hidden style={{
+              position: 'absolute', left: '50%', top: 0, bottom: 0,
+              borderLeft: `1.5px dashed ${BROWN}`,
+              transform: 'translateX(-50%)', pointerEvents: 'none',
+            }} />
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              columnGap: 22,
+              alignItems: 'start',
+            }}>
+              <div>
+                {left.map(cat => (
+                  <CategoryBlock key={cat.id} cat={cat} boxed={BOXED.includes(cat.name)} />
+                ))}
+              </div>
+              <div>
+                {right.map(cat => (
+                  <CategoryBlock key={cat.id} cat={cat} boxed={BOXED.includes(cat.name)} />
+                ))}
+              </div>
             </div>
           </div>
         )}
-        </div>{/* end items grid wrapper */}
+        </div>{/* end dashed frame */}
       </div>
 
       {/* Footer art (@handle + doodles) extracted from the original design */}
@@ -499,7 +509,7 @@ export default function Cardapio() {
         }
         @keyframes drift1 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-22px,20px); } }
         @keyframes drift2 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(24px,-16px); } }
-        * { -webkit-tap-highlight-color: transparent; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
       `}</style>
     </div>

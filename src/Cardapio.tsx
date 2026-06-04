@@ -85,18 +85,22 @@ function ItemRow({ item }: { item: MenuItem }) {
 export default function Cardapio() {
   const [categories, setCategories] = useState<CategoryWithItems[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   const fetchData = async () => {
-    const { data: cats } = await supabase
-      .from('menu_categories')
-      .select('*')
-      .order('display_order');
+    const [{ data: cats, error: catsErr }, { data: items, error: itemsErr }] = await Promise.all([
+      supabase.from('menu_categories').select('*').order('display_order'),
+      supabase.from('menu_items').select('*').order('display_order'),
+    ]);
 
-    const { data: items } = await supabase
-      .from('menu_items')
-      .select('*')
-      .order('display_order');
+    if (catsErr || itemsErr) {
+      // Only replace the screen with an error when there's no cached menu yet
+      if (categories.length === 0) setFetchError(true);
+      setLoading(false);
+      return;
+    }
 
+    setFetchError(false);
     if (cats && items) {
       setCategories(
         cats.map(c => ({
@@ -210,6 +214,23 @@ export default function Cardapio() {
               animation: 'spin 0.8s linear infinite',
             }} />
             <p style={{ color: '#7a5431', fontSize: 13, margin: 0 }}>Carregando cardápio…</p>
+          </div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <p style={{ color: '#b04040', fontSize: 14, marginBottom: 12 }}>
+              Não foi possível carregar o cardápio.
+            </p>
+            <button
+              onClick={() => { setFetchError(false); setLoading(true); fetchData(); }}
+              style={{
+                padding: '9px 20px', borderRadius: 8, border: 'none',
+                background: '#936a44', color: '#fff',
+                fontFamily: '"Outfit", sans-serif', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Tentar novamente
+            </button>
           </div>
         ) : categories.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9a7a5a' }}>

@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ["main"] # ou "master", dependendo de como está no seu GitHub
+  workflow_dispatch: {} # permite redeploy manual ou via uptime-monitor.yml
 
 permissions:
   contents: read

@@ -1,0 +1,85 @@
+name: Uptime Monitor — Cardápio Digital
+
+on:
+  schedule:
+    - cron: "*/30 * * * *" # a cada 30 minutos, 24/7
+  workflow_dispatch: {} # permite rodar manualmente pelo botão "Run workflow"
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar links do cardápio
+        id: check
+        run: |
+          DOWN=0
+          for path in "" "cardapio.html" "admin.html"; do
+            url="https://shifu027.github.io/ClubdoCafe/${path}"
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            echo "$url -> $code"
+            if [ "$code" != "200" ]; then
+              DOWN=1
+            fi
+          done
+          echo "down=$DOWN" >> "$GITHUB_OUTPUT"
+
+      - name: Tentar autocorreção (redeploy)
+        if: steps.check.outputs.down == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" || true
+
+      - name: Esperar e checar novamente
+        if: steps.check.outputs.down == '1'
+        id: recheck
+        run: |
+          sleep 90
+          DOWN=0
+          for path in "" "cardapio.html" "admin.html"; do
+            url="https://shifu027.github.io/ClubdoCafe/${path}"
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            echo "$url -> $code"
+            if [ "$code" != "200" ]; then
+              DOWN=1
+            fi
+          done
+          echo "still_down=$DOWN" >> "$GITHUB_OUTPUT"
+
+      - name: Abrir alerta se continuar fora do ar
+        if: steps.check.outputs.down == '1' && steps.recheck.outputs.still_down == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "Cardápio fora do ar in:title" --json number --jq '.[0].number')
+          if [ -z "$EXISTING" ]; then
+            BODY=$(printf '%s\n' \
+              "O link público do cardápio (https://shifu027.github.io/ClubdoCafe/cardapio.html) está retornando erro mesmo após tentativa automática de redeploy." \
+              "" \
+              "**Causa mais provável:** o repositório foi marcado como privado (GitHub Pages no plano gratuito só funciona em repositório público)." \
+              "" \
+              "**Como resolver:**" \
+              "1. Acesse https://github.com/shifu027/ClubdoCafe/settings" \
+              "2. Role até Danger Zone -> Change repository visibility -> torne público" \
+              "3. Aguarde o redeploy automático (ou rode manualmente o workflow Deploy to GitHub Pages)" \
+              "" \
+              "Este alerta foi criado automaticamente pelo monitor de uptime. Ele será fechado sozinho assim que o site voltar a responder 200.")
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "🚨 Cardápio fora do ar — ação necessária" \
+              --body "$BODY"
+          fi
+
+      - name: Fechar alerta se site recuperado
+        if: steps.check.outputs.down == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OPEN_ISSUE=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "Cardápio fora do ar in:title" --json number --jq '.[0].number')
+          if [ -n "$OPEN_ISSUE" ]; then
+            gh issue close "$OPEN_ISSUE" --repo "$GITHUB_REPOSITORY" --comment "✅ Site voltou a responder normalmente. Fechando alerta automaticamente."
+          fi

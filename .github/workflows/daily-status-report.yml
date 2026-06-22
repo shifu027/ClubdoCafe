@@ -29,7 +29,7 @@ jobs:
           ITEM_COUNT=$(echo "$ITEM_HEADERS" | grep -i '^content-range' | sed -E 's#.*/##' | tr -d '\r')
 
           DB_STATUS="online"
-          if [ -z "$CAT_COUNT" ]; then DB_STATUS="offline-ou-pausado"; fi
+          if [ -z "$CAT_COUNT" ] || [ -z "$ITEM_COUNT" ]; then DB_STATUS="offline-ou-pausado"; fi
 
           {
             echo "status_home=$STATUS_HOME"

@@ -14,6 +14,18 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      - name: Manter Supabase ativo (anti-pausa)
+        # Consulta leve ao banco para impedir que o projeto Supabase
+        # gratuito pause por inatividade (pausa após ~7 dias sem uso).
+        # A chave abaixo é a "anon key", pública por design (já vai no
+        # bundle do app) e protegida pelas políticas RLS do banco.
+        run: |
+          ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViaGVvc2lqa3R2dm5wZ3JzeWxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjgzNDUsImV4cCI6MjA5NjE0NDM0NX0.CiyQLUiPwxcQ-4tp-LnVUp-eJNcGut5h4MTbPVnkPVw"
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://ubheosijktvvnpgrsylm.supabase.co/rest/v1/menu_categories?select=id&limit=1" \
+            -H "apikey: $ANON_KEY")
+          echo "Supabase ping -> $code"
+
       - name: Verificar links do cardápio
         id: check
         run: |

@@ -1,14 +1,12 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  MapPin, 
-  Coffee, 
-  MessageCircle, 
-  Instagram, 
-  X, 
+import {
+  MapPin,
+  Coffee,
+  MessageCircle,
+  Instagram,
   ArrowUp,
   Bean,
-  ChevronLeft,
   ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -116,19 +114,7 @@ const GlowCard = ({ children, className, onClick, type, href, primary, ...props 
 };
 
 export default function App() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [menuPageIndex, setMenuPageIndex] = useState(0);
-  const [showSwipeHint, setShowSwipeHint] = useState(true);
-
-  useEffect(() => {
-    if (isModalOpen) {
-      const timer = setTimeout(() => setShowSwipeHint(false), 3000);
-      return () => clearTimeout(timer);
-    } else {
-      setShowSwipeHint(true);
-    }
-  }, [isModalOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -146,19 +132,6 @@ export default function App() {
   const assetBase = import.meta.env.BASE_URL;
   const logoPath = `${assetBase}assets/logo.png`;
 
-  const menuPages = [
-    { src: `${assetBase}assets/menu-capa.jpg`, alt: "Capa do Menu" },
-    { src: `${assetBase}assets/menu.jpg`, alt: "Itens do Menu" }
-  ];
-
-  const nextMenuPage = () => {
-    setMenuPageIndex((prev) => (prev + 1) % menuPages.length);
-  };
-
-  const prevMenuPage = () => {
-    setMenuPageIndex((prev) => (prev - 1 + menuPages.length) % menuPages.length);
-  };
-
   const links = [
     {
       title: 'Como chegar',
@@ -172,8 +145,8 @@ export default function App() {
       title: 'Ver Cardápio',
       subtitle: 'Explore nossas delícias',
       icon: <Coffee className="w-5 h-5" />,
-      onClick: () => setIsModalOpen(true),
-      type: 'button',
+      href: `${assetBase}cardapio.html`,
+      type: 'external',
       primary: false
     },
     {
@@ -313,143 +286,9 @@ export default function App() {
           </footer>
         </main>
 
-        {/* Modal - Menu Overlay */}
-        <AnimatePresence>
-          {isModalOpen && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="modal-overlay"
-            >
-              <div className="p-6 flex items-center justify-between sticky top-0 z-[110] bg-black/20 backdrop-blur-md">
-                <div className="flex flex-col">
-                  <h2 className="font-serif text-2xl font-bold text-white leading-tight">Nosso Menu</h2>
-                  <p className="text-cafe-accent text-[11px] font-bold uppercase tracking-widest mt-1">
-                    Página {menuPageIndex + 1} de {menuPages.length}
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-12 h-12 bg-white/10 hover:bg-cafe-accent text-white rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
-                  aria-label="Fechar menu"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="flex-1 flex flex-col items-center justify-center relative p-6 overflow-hidden [perspective:2500px]">
-                <div className="w-full max-w-[500px] h-full relative flex items-center">
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={menuPageIndex}
-                      drag="x"
-                      dragConstraints={{ left: 0, right: 0 }}
-                      dragElastic={0.2}
-                      onDragStart={() => setShowSwipeHint(false)}
-                      onDragEnd={(_, info) => {
-                        if (info.offset.x > 80) prevMenuPage();
-                        else if (info.offset.x < -80) nextMenuPage();
-                      }}
-                      initial={{ rotateY: 95, opacity: 0, scale: 0.9 }}
-                      animate={{ rotateY: 0, opacity: 1, scale: 1 }}
-                      exit={{ rotateY: -95, opacity: 0, scale: 0.9 }}
-                      transition={{ 
-                        duration: 0.9, 
-                        ease: [0.16, 1, 0.3, 1] 
-                      }}
-                      style={{ 
-                        transformOrigin: "center center",
-                        backfaceVisibility: "hidden",
-                        transformStyle: "preserve-3d"
-                      }}
-                      className="w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-none group"
-                    >
-                      <div className="relative w-full h-full flex items-center justify-center">
-                        {/* Fake Page Shadow Effect */}
-                        <motion.div 
-                          className="absolute inset-0 bg-black/20 rounded-[24px] pointer-events-none"
-                          initial={{ opacity: 0.5 }}
-                          animate={{ opacity: 0 }}
-                          exit={{ opacity: 0.5 }}
-                        />
-                        
-                        {/* Edge curl visual cue */}
-                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/20 to-transparent rounded-r-[24px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/20 to-transparent rounded-l-[24px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                        <img 
-                          src={menuPages[menuPageIndex].src} 
-                          alt={menuPages[menuPageIndex].alt} 
-                          className="max-w-[90vw] max-h-[75vh] sm:max-h-[85%] rounded-[24px] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.7)] border border-white/10 object-contain select-none"
-                        />
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* Swipe Hint Indicator */}
-                  <AnimatePresence>
-                    {showSwipeHint && (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 pointer-events-none flex items-center justify-center z-50"
-                      >
-                        <motion.div
-                          animate={{ x: [-20, 20, -20] }}
-                          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                          className="flex flex-col items-center gap-3 bg-black/40 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/10"
-                        >
-                          <div className="flex gap-2">
-                             <ChevronLeft className="w-5 h-5 text-white/50" />
-                             <div className="w-8 h-8 rounded-full border-2 border-white/80 animate-pulse flex items-center justify-center">
-                               <div className="w-2 h-2 rounded-full bg-white" />
-                             </div>
-                             <ChevronRight className="w-5 h-5 text-white/50" />
-                          </div>
-                          <span className="text-white text-[10px] font-bold uppercase tracking-widest">Deslize para ler</span>
-                        </motion.div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Navigation Arrows */}
-                  <button 
-                    onClick={prevMenuPage}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white/10 hover:bg-cafe-accent text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 active:scale-90"
-                    aria-label="Página anterior"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  <button 
-                    onClick={nextMenuPage}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-white/10 hover:bg-cafe-accent text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300 active:scale-90"
-                    aria-label="Próxima página"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <div className="mt-8 flex gap-2">
-                  {menuPages.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setMenuPageIndex(i)}
-                      aria-label={`Ir para página ${i + 1}`}
-                      aria-current={i === menuPageIndex ? 'page' : undefined}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${i === menuPageIndex ? 'bg-cafe-accent w-6' : 'bg-white/20'}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Back to Top */}
         <AnimatePresence>
-          {showBackToTop && !isModalOpen && (
+          {showBackToTop && (
             <motion.button 
               initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}

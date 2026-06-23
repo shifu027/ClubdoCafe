@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Coletar status do site e do banco
         id: collect
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViaGVvc2lqa3R2dm5wZ3JzeWxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjgzNDUsImV4cCI6MjA5NjE0NDM0NX0.CiyQLUiPwxcQ-4tp-LnVUp-eJNcGut5h4MTbPVnkPVw"
           BASE_URL="https://ubheosijktvvnpgrsylm.supabase.co/rest/v1"
@@ -22,6 +24,8 @@ jobs:
           STATUS_HOME=$(curl -s -o /dev/null -w "%{http_code}" "https://shifu027.github.io/ClubdoCafe/")
           STATUS_CARDAPIO=$(curl -s -o /dev/null -w "%{http_code}" "https://shifu027.github.io/ClubdoCafe/cardapio.html")
           STATUS_ADMIN=$(curl -s -o /dev/null -w "%{http_code}" "https://shifu027.github.io/ClubdoCafe/admin.html")
+
+          REPO_PRIVATE=$(gh api "repos/$GITHUB_REPOSITORY" --jq '.private')
 
           CAT_HEADERS=$(curl -s -o /dev/null -D - "$BASE_URL/menu_categories?select=id" -H "apikey: $ANON_KEY" -H "Prefer: count=exact")
           ITEM_HEADERS=$(curl -s -o /dev/null -D - "$BASE_URL/menu_items?select=id" -H "apikey: $ANON_KEY" -H "Prefer: count=exact")
@@ -38,6 +42,7 @@ jobs:
             echo "cat_count=${CAT_COUNT:-0}"
             echo "item_count=${ITEM_COUNT:-0}"
             echo "db_status=$DB_STATUS"
+            echo "repo_private=${REPO_PRIVATE:-unknown}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Criar issue de relatório (dispara notificação por e-mail)
@@ -54,6 +59,12 @@ jobs:
           cardapio_icon="$OK"; [ "${{ steps.collect.outputs.status_cardapio }}" != "200" ] && cardapio_icon="$FAIL"
           admin_icon="$OK"; [ "${{ steps.collect.outputs.status_admin }}" != "200" ] && admin_icon="$FAIL"
           db_icon="$OK"; [ "${{ steps.collect.outputs.db_status }}" != "online" ] && db_icon="$FAIL"
+          repo_icon="$OK"; [ "${{ steps.collect.outputs.repo_private }}" != "false" ] && repo_icon="$FAIL"
+
+          REPO_LINE="$repo_icon Repositório público (necessário para o GitHub Pages funcionar)"
+          if [ "${{ steps.collect.outputs.repo_private }}" == "true" ]; then
+            REPO_LINE="$FAIL Repositório está PRIVADO — isso quebra o GitHub Pages e derruba o cardápio/QR Code. Vá em Settings > Danger Zone > Change visibility e torne público."
+          fi
 
           BODY=$(printf '%s\n' \
             "Relatório automático gerado em $DATA_HOJE às $HORA_HOJE (horário de Brasília)." \
@@ -62,6 +73,7 @@ jobs:
             "$home_icon Página inicial — HTTP ${{ steps.collect.outputs.status_home }}" \
             "$cardapio_icon Cardápio digital — HTTP ${{ steps.collect.outputs.status_cardapio }}" \
             "$admin_icon Painel admin — HTTP ${{ steps.collect.outputs.status_admin }}" \
+            "$REPO_LINE" \
             "" \
             "**Banco de dados (Supabase):**" \
             "$db_icon Status: ${{ steps.collect.outputs.db_status }}" \
